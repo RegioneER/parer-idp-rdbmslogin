@@ -22,14 +22,10 @@ public class IdpConfigLog {
 
     @Override
     public String toString() {
-        return "IdpConfigLog{" 
-                + "qryVerificaDisattivazioneUtente=" + qryVerificaDisattivazioneUtente 
-                + ", qryRegistraEventoUtente=" + qryRegistraEventoUtente 
-                + ", qryDisabilitaUtente=" + qryDisabilitaUtente 
-                + ", maxTentativi=" + maxTentativi 
-                + ", maxGiorni=" + maxGiorni 
-                + ", serverNameSystemProperty=" + serverNameSystemProperty 
-                + '}';
+        return "IdpConfigLog{" + "qryVerificaDisattivazioneUtente=" + qryVerificaDisattivazioneUtente
+                + ", qryRegistraEventoUtente=" + qryRegistraEventoUtente + ", qryDisabilitaUtente="
+                + qryDisabilitaUtente + ", maxTentativi=" + maxTentativi + ", maxGiorni=" + maxGiorni
+                + ", serverNameSystemProperty=" + serverNameSystemProperty + '}';
     }
 
     public String getQryVerificaDisattivazioneUtente() {

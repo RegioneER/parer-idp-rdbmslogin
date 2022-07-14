@@ -8,6 +8,12 @@
     <description>Modulo per jboss 7 (6EAP) basato su https://github.com/tauceti2/jaas-rdbms utilizzato dall'idp per l'autenticazione su db</description>
     <packaging>jar</packaging>
 
+    <parent>
+        <groupId>it.eng.parer</groupId>
+        <artifactId>parer-pom</artifactId>
+        <version>3.0.17</version>
+    </parent>
+    
     <scm>
         <developerConnection>scm:git:https://github.com/RegioneER/parer.sacer.idp-rdbmslogin.git</developerConnection>
         <tag>HEAD</tag>
