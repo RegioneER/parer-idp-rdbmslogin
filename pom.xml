@@ -22,7 +22,7 @@
     <repositories>
         <repository>
             <id>github</id>
-            <url>https://maven.pkg.github.com/RegioneER/parer.sacer.parent</url>            
+            <url>https://maven.pkg.github.com/RegioneER/parer-framework-parerpom</url>            
         </repository>          
 	</repositories> 
 
