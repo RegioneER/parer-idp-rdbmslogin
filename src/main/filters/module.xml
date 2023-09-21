@@ -6,6 +6,6 @@
     </resources>
     <dependencies>
         <module name="javax.api"/>
-        <module name="com.oracle.ojdbc7"/>
+        <module name="com.oracle.ojdbc8"/>
     </dependencies>
 </module>
