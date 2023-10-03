@@ -19,6 +19,13 @@
         <tag>HEAD</tag>
     </scm> 
 
+    <distributionManagement>
+     <repository>
+	   <id>github</id>
+	   <url>https://maven.pkg.github.com/RegioneER/parer-idp-rdbmslogin</url>
+	 </repository>      
+    </distributionManagement>
+
     <repositories>
         <repository>
             <id>github</id>
