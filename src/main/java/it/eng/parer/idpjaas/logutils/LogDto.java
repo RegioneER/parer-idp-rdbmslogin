@@ -28,24 +28,16 @@ public class LogDto {
 
     @Override
     public String toString() {
-        return "LogDto{"
-                + "nmAttore=" + nmAttore
-                + ", nmUser=" + nmUser
-                + ", tipoEvento=" + tipoEvento
-                + ", cdIndIpClient=" + cdIndIpClient
-                + ", dsEvento=" + dsEvento
-                + ", tsEvento=" + tsEvento
-                + ", servername=" + servername
-                + '}';
+        return "LogDto{" + "nmAttore=" + nmAttore + ", nmUser=" + nmUser + ", tipoEvento=" + tipoEvento
+                + ", cdIndIpClient=" + cdIndIpClient + ", dsEvento=" + dsEvento + ", tsEvento=" + tsEvento
+                + ", servername=" + servername + '}';
     }
 
     public LogDto() {
     }
 
-    public LogDto(String nmAttore, String nmUser,
-            TipiEvento tipoEvento, String cdIndIpClient,
-            String dsEvento, Date tsEvento,
-            String servername) {
+    public LogDto(String nmAttore, String nmUser, TipiEvento tipoEvento, String cdIndIpClient, String dsEvento,
+            Date tsEvento, String servername) {
         this.nmAttore = nmAttore;
         this.nmUser = nmUser;
         this.tipoEvento = tipoEvento;

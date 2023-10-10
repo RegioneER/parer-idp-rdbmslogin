@@ -18,10 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class wraps around a {@link PreparedStatement} and allows the programmer to set parameters
- * by name instead of by index. This eliminates any confusion as to which parameter index represents
- * what. This also means that rearranging the SQL statement or adding a parameter doesn't involve
- * renumbering your indices.
+ * This class wraps around a {@link PreparedStatement} and allows the programmer to set parameters by name instead of by
+ * index. This eliminates any confusion as to which parameter index represents what. This also means that rearranging
+ * the SQL statement or adding a parameter doesn't involve renumbering your indices.
  *
  * Credit to Adam Crume for his implementation of the SQL query parser:
  * http://www.javaworld.com/article/2077706/core-java/named-parameters-for-preparedstatement.html
@@ -42,38 +41,41 @@ public class NamedStatement {
 
     public enum Modes {
         /**
-         * With this option set, the setXxxx method will throw an exception if the parameter does
-         * not exist
+         * With this option set, the setXxxx method will throw an exception if the parameter does not exist
          */
         STANDARD,
         /**
-         * With this option set, the setXxxx method will NOT throw an exception if the parameter
-         * does not exist
+         * With this option set, the setXxxx method will NOT throw an exception if the parameter does not exist
          */
         QUIET
     }
 
     /**
-     * Creates a NamedStatement. Wraps a call to
-     * {@link Connection#prepareStatement(java.lang.String)}.
+     * Creates a NamedStatement. Wraps a call to {@link Connection#prepareStatement(java.lang.String)}.
      *
-     * @param connection the database connection
-     * @param query the parameterized query
-     * @throws SQLException if the statement could not be created
+     * @param connection
+     *            the database connection
+     * @param query
+     *            the parameterized query
+     * 
+     * @throws SQLException
+     *             if the statement could not be created
+     * 
      * @see Connection#prepareStatement(java.lang.String)
      */
-    public NamedStatement(Connection connection, String query) throws
-            SQLException {
+    public NamedStatement(Connection connection, String query) throws SQLException {
         indexMap = new HashMap();
         String parsedQuery = parseQuery(query);
         statement = connection.prepareStatement(parsedQuery);
     }
 
     /**
-     * Parses a query with named parameters. The parameter-index mappings are put into the map, and
-     * the parsed query is returned.
+     * Parses a query with named parameters. The parameter-index mappings are put into the map, and the parsed query is
+     * returned.
      *
-     * @param query query to parse
+     * @param query
+     *            query to parse
+     * 
      * @return the parsed query
      */
     private String parseQuery(String query) {
@@ -126,7 +128,9 @@ public class NamedStatement {
     /**
      * Tests if a parameter exists in the parsed querystring
      *
-     * @param name the parameter/placeholder to test for
+     * @param name
+     *            the parameter/placeholder to test for
+     * 
      * @return true if the parameter is referenced in query string
      */
     public boolean isPlaceHolderInQueryString(String name) {
@@ -139,9 +143,13 @@ public class NamedStatement {
     /**
      * Returns the indexes for a parameter.
      *
-     * @param name parameter name
+     * @param name
+     *            parameter name
+     * 
      * @return parameter indexes
-     * @throws IllegalArgumentException if the parameter does not exist
+     * 
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
      */
     private List<Integer> getIndexesOrDieTrying(String name) {
         List<Integer> indexes = (List<Integer>) indexMap.get(name);
@@ -152,10 +160,11 @@ public class NamedStatement {
     }
 
     /**
-     * Returns the indexes for a parameter; does not throw an exception if the parameter is not
-     * found
+     * Returns the indexes for a parameter; does not throw an exception if the parameter is not found
      *
-     * @param name parameter name
+     * @param name
+     *            parameter name
+     * 
      * @return parameter indexes
      */
     private List<Integer> getIndexes(String name) {
@@ -166,10 +175,16 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
+     * 
      * @see PreparedStatement#setObject(int, java.lang.Object)
      */
     public void setObject(String name, Object value) throws SQLException {
@@ -179,10 +194,16 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
+     * 
      * @see PreparedStatement#setString(int, java.lang.String)
      */
     public void setString(String name, String value) throws SQLException {
@@ -192,10 +213,16 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
+     * 
      * @see PreparedStatement#setInt(int, int)
      */
     public void setInt(String name, Integer value) throws SQLException {
@@ -205,10 +232,16 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
+     * 
      * @see PreparedStatement#setLong(int, long)
      */
     public void setLong(String name, Long value) throws SQLException {
@@ -218,10 +251,16 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
+     * 
      * @see PreparedStatement#setTimestamp(int, java.sql.Timestamp)
      */
     public void setTimestamp(String name, Timestamp value) throws SQLException {
@@ -231,10 +270,16 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist
+     * 
      * @see PreparedStatement#setDate(int, java.sql.Date)
      */
     public void setDate(String name, Date value) throws SQLException {
@@ -244,12 +289,19 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param mode values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an
-     * exception if the parameter does not exist
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist and mode is set to STANDARD
+     * @param mode
+     *            values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an exception if the parameter
+     *            does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist and mode is set to STANDARD
+     * 
      * @see PreparedStatement#setObject(int, java.lang.Object)
      */
     public void setObject(Modes mode, String name, Object value) throws SQLException {
@@ -274,12 +326,19 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param mode values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an
-     * exception if the parameter does not exist
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist and mode is set to STANDARD
+     * @param mode
+     *            values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an exception if the parameter
+     *            does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist and mode is set to STANDARD
+     * 
      * @see PreparedStatement#setString(int, java.lang.String)
      */
     public void setString(Modes mode, String name, String value) throws SQLException {
@@ -304,12 +363,19 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param mode values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an
-     * exception if the parameter does not exist
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist and mode is set to STANDARD
+     * @param mode
+     *            values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an exception if the parameter
+     *            does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist and mode is set to STANDARD
+     * 
      * @see PreparedStatement#setInt(int, int)
      */
     public void setInt(Modes mode, String name, Integer value) throws SQLException {
@@ -335,12 +401,19 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param mode values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an
-     * exception if the parameter does not exist
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist and mode is set to STANDARD
+     * @param mode
+     *            values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an exception if the parameter
+     *            does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist and mode is set to STANDARD
+     * 
      * @see PreparedStatement#setLong(int, long)
      */
     public void setLong(Modes mode, String name, Long value) throws SQLException {
@@ -365,12 +438,19 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param mode values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an
-     * exception if the parameter does not exist
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist and mode is set to STANDARD
+     * @param mode
+     *            values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an exception if the parameter
+     *            does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist and mode is set to STANDARD
+     * 
      * @see PreparedStatement#setTimestamp(int, java.sql.Timestamp)
      */
     public void setTimestamp(Modes mode, String name, Timestamp value) throws SQLException {
@@ -395,12 +475,19 @@ public class NamedStatement {
     /**
      * Sets a parameter.
      *
-     * @param mode values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an
-     * exception if the parameter does not exist
-     * @param name parameter name
-     * @param value parameter value
-     * @throws SQLException if an error occurred
-     * @throws IllegalArgumentException if the parameter does not exist and mode is set to STANDARD
+     * @param mode
+     *            values: STANDARD: same behaviour as normal method, QUIET: doesn't throw an exception if the parameter
+     *            does not exist
+     * @param name
+     *            parameter name
+     * @param value
+     *            parameter value
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * @throws IllegalArgumentException
+     *             if the parameter does not exist and mode is set to STANDARD
+     * 
      * @see PreparedStatement#setDate(int, java.sql.Date)
      */
     public void setDate(Modes mode, String name, Date value) throws SQLException {
@@ -435,7 +522,10 @@ public class NamedStatement {
      * Executes the statement.
      *
      * @return true if the first result is a {@link ResultSet}
-     * @throws SQLException if an error occurred
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * 
      * @see PreparedStatement#execute()
      */
     public boolean execute() throws SQLException {
@@ -446,7 +536,10 @@ public class NamedStatement {
      * Executes the statement, which must be a query.
      *
      * @return the query results
-     * @throws SQLException if an error occurred
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * 
      * @see PreparedStatement#executeQuery()
      */
     public ResultSet executeQuery() throws SQLException {
@@ -454,11 +547,14 @@ public class NamedStatement {
     }
 
     /**
-     * Executes the statement, which must be an SQL INSERT, UPDATE or DELETE statement; or an SQL
-     * statement that returns nothing, such as a DDL statement.
+     * Executes the statement, which must be an SQL INSERT, UPDATE or DELETE statement; or an SQL statement that returns
+     * nothing, such as a DDL statement.
      *
      * @return number of rows affected
-     * @throws SQLException if an error occurred
+     * 
+     * @throws SQLException
+     *             if an error occurred
+     * 
      * @see PreparedStatement#executeUpdate()
      */
     public int executeUpdate() throws SQLException {
@@ -468,7 +564,9 @@ public class NamedStatement {
     /**
      * Closes the statement.
      *
-     * @throws SQLException if an error occurred
+     * @throws SQLException
+     *             if an error occurred
+     * 
      * @see Statement#close()
      */
     public void close() throws SQLException {
@@ -478,7 +576,8 @@ public class NamedStatement {
     /**
      * Adds the current set of parameters as a batch entry.
      *
-     * @throws SQLException if something went wrong
+     * @throws SQLException
+     *             if something went wrong
      */
     public void addBatch() throws SQLException {
         statement.addBatch();
@@ -490,7 +589,9 @@ public class NamedStatement {
      * See {@link Statement#executeBatch()} for details.
      *
      * @return update counts for each statement
-     * @throws SQLException if something went wrong
+     * 
+     * @throws SQLException
+     *             if something went wrong
      */
     public int[] executeBatch() throws SQLException {
         return statement.executeBatch();

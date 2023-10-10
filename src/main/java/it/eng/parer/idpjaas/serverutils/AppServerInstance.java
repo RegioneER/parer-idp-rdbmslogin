@@ -29,14 +29,8 @@ public class AppServerInstance {
         // tendenzialmente è meglio un site local di un ip pubblico.
         // per capire se un ip ha un nome, verifico se questo è diverso dalla
         // rappresentazione in stringa delll'ip. (non molto bello, in effetti)
-        SITE_LOCAL_WITH_NAME,
-        NON_SITE_LOCAL_WITH_NAME,
-        SITE_LOCAL_WITHOUT_NAME_IPV4,
-        NON_SITE_LOCAL_WITHOUT_NAME_IPV4,
-        SITE_LOCAL_WITHOUT_NAME_IPV6,
-        NON_SITE_LOCAL_WITHOUT_NAME_IPV6,
-        LOOPBACK_IPV4,
-        LOOPBACK_IPV6
+        SITE_LOCAL_WITH_NAME, NON_SITE_LOCAL_WITH_NAME, SITE_LOCAL_WITHOUT_NAME_IPV4, NON_SITE_LOCAL_WITHOUT_NAME_IPV4,
+        SITE_LOCAL_WITHOUT_NAME_IPV6, NON_SITE_LOCAL_WITHOUT_NAME_IPV6, LOOPBACK_IPV4, LOOPBACK_IPV6
     }
 
     public String getName(String sname) throws UnknownHostException {
@@ -57,7 +51,7 @@ public class AppServerInstance {
             Map<AddressTypes, InetAddress> map = new HashMap<>();
 
             // Nota se falliscono tutti questi tentativi la macchina è
-            // probabilmente disconnessa dalla rete 
+            // probabilmente disconnessa dalla rete
             //
             // Scorri su tutte le interfacce di rete
             for (Enumeration ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements();) {
@@ -90,8 +84,8 @@ public class AppServerInstance {
             }
             return jdkSuppliedAddress;
         } catch (Exception e) {
-            UnknownHostException unknownHostException
-                    = new UnknownHostException("Impossibile determinare un indirizzo per la macchina: " + e);
+            UnknownHostException unknownHostException = new UnknownHostException(
+                    "Impossibile determinare un indirizzo per la macchina: " + e);
             unknownHostException.initCause(e);
             throw unknownHostException;
         }
