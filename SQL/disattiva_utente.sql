@@ -2,11 +2,9 @@ create or replace PROCEDURE disattiva_utente (
 /*
  * disattiva l'utente definito da nmuserid, 
  * aggiorna il log degli eventi,
- * salva i vecchi dati delle password e salt
+ * aggiorna la tabella storica degli stati degli utenti,
  * predispone la replicazione dell'utente sugli schema collegati
-
- Versione 2.0
-
+ 
  usando come riferimento temporale il timestamp ricevuto.
  
  NOTA: questa procedura non effettua il commit
@@ -21,7 +19,6 @@ create or replace PROCEDURE disattiva_utente (
  rileveranno un utente disattivato e non faranno nulla.
  
  author: ff
- revisione: MI - MEV#24245 - rimozione della disattivazione automatica dell'utente al verificarsi di eventi di sicurezza sull'account username/password sacer
  
  ex: begin DISATTIVA_UTENTE('user.name',systimestamp); end;
  */
@@ -30,11 +27,9 @@ create or replace PROCEDURE disattiva_utente (
 ) IS
 
     tmp_usr_user        usr_user%rowtype;
+    tmp_id_stato_user   usr_stato_user.id_stato_user%TYPE;
     tmp_id_user_iam     usr_user.id_user_iam%TYPE;
-    tmp_vecchio_salt    usr_user.cd_salt%TYPE;
-    tmp_vecchia_psw     usr_user.cd_psw%TYPE;
     tmp_adesso          TIMESTAMP;
-    tmp_conta           NUMBER;
 BEGIN
     tmp_adesso          := systimestamp;
     --
@@ -49,75 +44,68 @@ BEGIN
     FOR UPDATE WAIT 35;
 
     -- eseguo la disattivazione solo se l'utente è attivo.
-    IF (tmp_usr_user.fl_attivo = 1)
+    IF (tmp_usr_user.fl_attivo = 1
+        AND (
+           tmp_usr_user.dt_scad_psw IS NULL
+           OR tmp_usr_user.dt_scad_psw >= tmp_adesso)
+       )
     THEN
-        tmp_id_user_iam := tmp_usr_user.id_user_iam;
-        tmp_vecchia_psw := tmp_usr_user.cd_psw;
-        tmp_vecchio_salt := tmp_usr_user.cd_salt;
-        /*
-        verifico se devo loggare l'evento di disattivazione:
-        è possibile che il logging applicativo sia disattivato.
-        */
-        -- dbms_output.put_line('verifico il parametro ');
-        SELECT COUNT(*)
+        tmp_id_user_iam     := tmp_usr_user.id_user_iam;
+        SELECT susr_stato_user.NEXTVAL
         INTO
-            tmp_conta
-        FROM iam_v_getval_param_by_apl t
-        WHERE t.nm_param_applic = 'LOG_ATTIVO'
-            AND t.ds_valore_param_applic = 'true';
-        IF
-            tmp_conta > 0
-        THEN
-            -- dbms_output.put_line('scrivo la riga in log_evento_by_script ');
-        -- inserisce una riga nel log degli eventi, usata dal job di registrazione
-        -- dei log
-            INSERT INTO sacer_log.log_evento_by_script (
-                id_evento_by_script,
-                id_tipo_oggetto,
-                id_oggetto,
-                dt_reg_evento,
-                id_agente,
-                id_azione_comp_sw,
-                ti_ruolo_oggetto_evento,
-                ti_ruolo_agente_evento,
-                id_applic,
-                ds_motivo_script
-            ) SELECT to_number(1000 ||TO_CHAR(sacer_log.slog_evento_by_script.nextval) ),
-                   config.id_tipo_oggetto,
-                   usr.id_user_iam id_oggetto,
-                   p_dt_evento,
-                   config.id_agente,
-                   config.id_azione_comp_sw,
-                   'outcome',
-                   'executing program',
-                   config.id_applic,
-                   'Reset password per i troppi tentativi di login falliti'
-            FROM usr_user usr,
-                 (
-                    SELECT ti_ogg.id_tipo_oggetto,
-                           comp_sw.id_agente,
-                           azio_sw.id_azione_comp_sw,
-                           apl.id_applic
-                    FROM sacer_iam.apl_applic apl
-                        JOIN
-                             sacer_iam.apl_comp_sw comp_sw
-                        ON ( comp_sw.id_applic = apl.id_applic
-                        )
-                        JOIN
-                             sacer_iam.apl_azione_comp_sw azio_sw
-                        ON ( azio_sw.id_comp_sw = comp_sw.id_comp_sw
-                        )
-                        JOIN
-                             sacer_iam.apl_tipo_oggetto ti_ogg
-                        ON ( ti_ogg.id_applic = apl.id_applic
-                        )
-                    WHERE apl.nm_applic = 'SACER_IAM'
-                        AND comp_sw.nm_comp_sw = 'Controlla login falliti'
-                        AND azio_sw.nm_azione_comp_sw = 'Reset password per login falliti'
-                        AND ti_ogg.nm_tipo_oggetto = 'Utente'
-                ) config
-            WHERE usr.id_user_iam = tmp_id_user_iam;
-        END IF;
+            tmp_id_stato_user
+        FROM dual;
+
+        tmp_id_stato_user   := to_number(1000 || TO_CHAR(tmp_id_stato_user) );
+    
+    -- inserisce una riga nel log degli eventi, usata dal job di registrazione
+    -- dei log
+        INSERT INTO sacer_log.log_evento_by_script (
+            id_evento_by_script,
+            id_tipo_oggetto,
+            id_oggetto,
+            dt_reg_evento,
+            id_agente,
+            id_azione_comp_sw,
+            ti_ruolo_oggetto_evento,
+            ti_ruolo_agente_evento,
+            id_applic,
+            ds_motivo_script
+        ) SELECT to_number(1000 ||TO_CHAR(sacer_log.slog_evento_by_script.nextval) ),
+               config.id_tipo_oggetto,
+               usr.id_user_iam id_oggetto,
+               p_dt_evento,
+               config.id_agente,
+               config.id_azione_comp_sw,
+               'outcome',
+               'executing program',
+               config.id_applic,
+               'Disattivazione utente per i troppi tentativi di login falliti'
+        FROM usr_user usr,
+             (
+                SELECT ti_ogg.id_tipo_oggetto,
+                       comp_sw.id_agente,
+                       azio_sw.id_azione_comp_sw,
+                       apl.id_applic
+                FROM sacer_iam.apl_applic apl
+                    JOIN
+                         sacer_iam.apl_comp_sw comp_sw
+                    ON ( comp_sw.id_applic = apl.id_applic
+                    )
+                    JOIN
+                         sacer_iam.apl_azione_comp_sw azio_sw
+                    ON ( azio_sw.id_comp_sw = comp_sw.id_comp_sw
+                    )
+                    JOIN
+                         sacer_iam.apl_tipo_oggetto ti_ogg
+                    ON ( ti_ogg.id_applic = apl.id_applic
+                    )
+                WHERE apl.nm_applic = 'SACER_IAM'
+                    AND comp_sw.nm_comp_sw = 'Controlla login falliti'
+                    AND azio_sw.nm_azione_comp_sw = 'Disattiva per login falliti'
+                    AND ti_ogg.nm_tipo_oggetto = 'Utente'
+            ) config
+        WHERE usr.id_user_iam = tmp_id_user_iam;
 
     -- inserisce l'utente nella tabella degli utenti da replicare.
     -- vengono inserite 0, 1 o 2 righe in funzione del
@@ -162,27 +150,33 @@ BEGIN
             )
         WHERE usr.id_user_iam = tmp_id_user_iam;
 
-        -- EFFETTUA il reset della password generando una password randomica di 8 caratteri in base 64
-        --
-        -- MEV#24245 - rimozione della disattivazione automatica dell'utente al verificarsi di eventi 
-        -- di sicurezza sull'account username/password sacer
-        --
-        -- Copia prima i dati della vecchia password e del salt e poi modifica la password dell'utente
-        
-        INSERT INTO USR_OLD_PSW (ID_OLD_PSW, ID_USER_IAM, 
-                                PG_OLD_PSW, 
-                                CD_PSW, CD_SALT)
-        VALUES ( to_number('1000' ||TO_CHAR(SUSR_OLD_PSW.NEXTVAL)), tmp_id_user_iam, 
-                (SELECT COALESCE(MAX(oldPsw.pg_Old_Psw),0) + 1 FROM Usr_Old_Psw oldPsw WHERE oldPsw.id_User_Iam = tmp_id_user_iam),
-                tmp_vecchia_psw, tmp_vecchio_salt );
-        
+    -- inserisce una riga nello storico degli stati
+
+        INSERT INTO usr_stato_user (
+            id_stato_user,
+            id_user_iam,
+            ts_stato,
+            ti_stato_user,
+            id_rich_gest_user,
+            id_notifica
+        ) VALUES (
+            tmp_id_stato_user,
+            tmp_id_user_iam,
+            p_dt_evento,
+            'DISATTIVO',
+            NULL,
+            NULL
+        );
+
+    -- aggiorna lo stato dell'utente con il riferimento alla riga di stato
+    -- inserita in precedenza
+
         UPDATE usr_user
             SET
-                cd_psw = (select utl_encode.base64_encode(utl_raw.cast_to_raw(dbms_random.string('A', 8))) from dual),
-                dt_reg_psw = SYSDATE,
-                dt_scad_psw = (SYSDATE  - 1)
+                fl_attivo = 0,
+                id_stato_user_cor = tmp_id_stato_user
         WHERE id_user_iam = tmp_id_user_iam;
-        
+
     END IF;
 
 EXCEPTION

@@ -1,20 +1,3 @@
-/*
- * Engineering Ingegneria Informatica S.p.A.
- *
- * Copyright (C) 2023 Regione Emilia-Romagna
- * <p/>
- * This program is free software: you can redistribute it and/or modify it under the terms of
- * the GNU Affero General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- * <p/>
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Affero General Public License for more details.
- * <p/>
- * You should have received a copy of the GNU Affero General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
 package com.tagish.auth;
 
 import it.eng.parer.idpjaas.logutils.IdpConfigLog;
@@ -55,11 +38,12 @@ import javax.sql.DataSource;
 import org.apache.commons.codec.binary.Base64;
 
 /**
- * @author Andy Armstrong, <A HREF="mailto:andy@tagish.com">andy@tagish.com</A> Modificata poi da
+ * @author Andy Armstrong, <A HREF="mailto:andy@tagish.com">andy@tagish.com</A>
+ * Modificata poi da
  * @author Quaranta_M (ha aggiunto la modalità di cifratura della password del Parer)
  * @author Snidero_L (ha aggiunto la possibilità di passare il nome jndi)
- * @author Fioravanti_F (ha aggiunto il log su database dei tentativi di login falliti e la disattivazione dell'utente
- *         se questi login falliti diventano troppi)
+ * @author Fioravanti_F (ha aggiunto il log su database dei tentativi di login falliti e la
+ * disattivazione dell'utente se questi login falliti diventano troppi)
  */
 public class DBLogin extends SimpleLogin {
 
@@ -85,7 +69,7 @@ public class DBLogin extends SimpleLogin {
     protected String qryRegistraEventoUtente;
     protected String serverNameSystemProperty;
 
-    // verifica ed eventuale disattivazione utente
+    // verifica ed eventuale disattivazione utente 
     // se fallisce troppi accessi
     // query: recupera parametro max giorni
     protected String qryRetrieveMaxDays;
@@ -108,7 +92,7 @@ public class DBLogin extends SimpleLogin {
 
     @Override
     protected synchronized Vector validateUser(String username, char[] password) throws LoginException {
-        String clientIpAddress = null; // verrà fornito come parametro del metodo
+        String clientIpAddress = null;     // verrà fornito come parametro del metodo
         String serviceProviderName = "Parer-IDP";
         //
         ResultSet rsu = null;
@@ -123,15 +107,17 @@ public class DBLogin extends SimpleLogin {
                 con = ds.getConnection();
             } else {
                 Class.forName(this.dbDriver);
-                con = this.dbUser != null ? DriverManager.getConnection(this.dbURL, this.dbUser, this.dbPassword)
+                con = this.dbUser != null
+                        ? DriverManager.getConnection(this.dbURL, this.dbUser, this.dbPassword)
                         : DriverManager.getConnection(this.dbURL);
             }
 
-            final String selectQuery = "SELECT " + this.passColumn + ", " + this.saltColumn + ", " + this.activeColumn
-                    + ", " + this.expirationColumn + " FROM " + this.userTable + " WHERE " + this.userColumn + "=?"
-                    + this.where;
+            final String selectQuery = "SELECT " + this.passColumn + ", " + this.saltColumn
+                    + ", " + this.activeColumn + ", " + this.expirationColumn
+                    + " FROM " + this.userTable
+                    + " WHERE " + this.userColumn + "=?" + this.where;
             LOGGER.log(Level.FINE, "[Parer-IDP] Login query for username \"{0}\": {1}",
-                    new Object[] { username, selectQuery });
+                    new Object[]{username, selectQuery});
 
             psu = con.prepareStatement(selectQuery);
             psu.setString(1, username);
@@ -141,12 +127,18 @@ public class DBLogin extends SimpleLogin {
             // se non esiste restituisce un errore di password errata
             // ma registra un errore di utente inesistente.
             //
-            // L'errore di password errata viene registrato solo
+            // L'errore di password errata viene registrato solo 
             // quando è realmente tale, perché viene usato
             // per la logica di disatttivazione utente
             if (!rsu.next()) {
-                LogDto tmpLogDto = new LogDto(serviceProviderName, username, TipiEvento.BAD_USER, clientIpAddress,
-                        "Unknown user", new java.util.Date(), null);
+                LogDto tmpLogDto = new LogDto(
+                        serviceProviderName,
+                        username,
+                        TipiEvento.BAD_USER,
+                        clientIpAddress,
+                        "Unknown user",
+                        new java.util.Date(),
+                        null);
                 this.scriviLog(tmpLogDto, con);
                 throw new FailedLoginException("Unknown user");
             }
@@ -176,7 +168,8 @@ public class DBLogin extends SimpleLogin {
                 isLoginOK = false;
                 isAccountLocked = true; // utente disattivato
             }
-            if (salt == null || salt.equals("") ? !storedPwd.equals(this.encodePassword(tpwd))
+            if (salt == null || salt.equals("")
+                    ? !storedPwd.equals(this.encodePassword(tpwd))
                     : !this.validatePassword(salt, tpwd, storedPwd)) {
                 isLoginOK = false;
                 isLoginFailed = true; // password errata
@@ -190,22 +183,46 @@ public class DBLogin extends SimpleLogin {
                 Vector<TypedPrincipal> p = new Vector<TypedPrincipal>();
                 p.add(new TypedPrincipal(username, 1));
                 typedPrincipalVector = p;
-                tmpLogDto = new LogDto(serviceProviderName, username, TipiEvento.LOGIN_OK, clientIpAddress, "Login OK",
-                        new java.util.Date(), null);
+                tmpLogDto = new LogDto(
+                        serviceProviderName,
+                        username,
+                        TipiEvento.LOGIN_OK,
+                        clientIpAddress,
+                        "Login OK",
+                        new java.util.Date(),
+                        null);
             } else {
                 // altrimenti verifico in ordine di priorità che errore registrare
                 if (isLoginFailed) {
                     // se la password è errata, lo registro in tabella.
-                    tmpLogDto = new LogDto(serviceProviderName, username, TipiEvento.BAD_PASS, clientIpAddress,
-                            "Bad password", new java.util.Date(), null);
+                    tmpLogDto = new LogDto(
+                            serviceProviderName,
+                            username,
+                            TipiEvento.BAD_PASS,
+                            clientIpAddress,
+                            "Bad password",
+                            new java.util.Date(),
+                            null);
                 } else if (isAccountLocked) {
                     // se l'utente è disattivato, lo registro in tabella
-                    tmpLogDto = new LogDto(serviceProviderName, username, TipiEvento.LOCKED, clientIpAddress,
-                            "Account disabled", new java.util.Date(), null);
+                    tmpLogDto = new LogDto(
+                            serviceProviderName,
+                            username,
+                            TipiEvento.LOCKED,
+                            clientIpAddress,
+                            "Account disabled",
+                            new java.util.Date(),
+                            null);
                 } else if (isAccountExpired) {
                     // se l'utente è scaduto, lo registro in tabella
-                    tmpLogDto = new LogDto(serviceProviderName, username, TipiEvento.EXPIRED, clientIpAddress,
-                            "Account expired on " + expDate.toString(), new java.util.Date(), null);
+                    tmpLogDto = new LogDto(
+                            serviceProviderName,
+                            username,
+                            TipiEvento.EXPIRED,
+                            clientIpAddress,
+                            "Account expired on " + expDate.toString(),
+                            new java.util.Date(),
+                            null);
                 }
             }
             // scrittura dell'evento ed eventuale disattivazione utente
@@ -213,7 +230,7 @@ public class DBLogin extends SimpleLogin {
 
             if (!isLoginOK) {
                 LOGGER.log(Level.FINE, "[Parer-IDP] Failed login; User: {0}, Cause {1}",
-                        new Object[] { tmpLogDto.getNmUser(), tmpLogDto.getTipoEvento().name() });
+                        new Object[]{tmpLogDto.getNmUser(), tmpLogDto.getTipoEvento().name()});
             }
 
             // verifico in ordine di priorità che messaggio di errore
@@ -229,7 +246,7 @@ public class DBLogin extends SimpleLogin {
                 throw new AccountExpiredException("Account expired on " + expDate);
             }
 
-            // nota bene: questo Vector viene reso solo se l'autenticazione
+            // nota bene: questo Vector viene reso solo se l'autenticazione 
             // è andata bene, in tutti gli altri casi questo metodo esce con un'eccezione
             return typedPrincipalVector;
         } catch (ClassNotFoundException e) {
@@ -252,34 +269,37 @@ public class DBLogin extends SimpleLogin {
                     rsu.close();
                 }
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante " + "la chiusura del ResultSet \"rsu\"", e);
+                LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante "
+                        + "la chiusura del ResultSet \"rsu\"", e);
             }
             try {
                 if (psu != null) {
                     psu.close();
                 }
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING,
-                        "[Parer-IDP] eccezione durante " + "la chiusura del PreparedStatement \"psu\"", e);
+                LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante "
+                        + "la chiusura del PreparedStatement \"psu\"", e);
             }
             try {
                 if (con != null) {
                     con.close();
                 }
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante " + "la chiusura della Connection \"con\"", e);
+                LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante "
+                        + "la chiusura della Connection \"con\"", e);
             }
         }
     }
 
     @Override
-    public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options) {
+    public void initialize(Subject subject, CallbackHandler callbackHandler,
+            Map sharedState, Map options) {
         super.initialize(subject, callbackHandler, sharedState, options);
 
         this.useJndiLookup = this.getOption("useJndiLookup", null);
         this.jndiName = this.getOption("jndiName", null);
 
-        // Se utilizzo jndi non utilizzo la connessione diretta
+        //Se utilizzo jndi non utilizzo la connessione diretta
         if (this.useJndiLookup == null || !this.useJndiLookup.equalsIgnoreCase(("true"))) {
 
             this.dbDriver = this.getOption("dbDriver", null);
@@ -292,7 +312,8 @@ public class DBLogin extends SimpleLogin {
             }
             this.dbUser = this.getOption("dbUser", null);
             this.dbPassword = this.getOption("dbPassword", null);
-            if (this.dbUser == null && this.dbPassword != null || this.dbUser != null && this.dbPassword == null) {
+            if (this.dbUser == null && this.dbPassword != null
+                    || this.dbUser != null && this.dbPassword == null) {
                 throw new Error("Either provide dbUser and dbPassword or encode both in dbURL");
             }
         }
@@ -304,16 +325,18 @@ public class DBLogin extends SimpleLogin {
         this.where = this.getOption("where", "");
         this.activeColumn = this.getOption("activeColumn", "");
         this.expirationColumn = this.getOption("expirationColumn", "");
-        this.where = this.where != null && this.where.length() > 0 ? " AND " + this.where : "";
+        this.where = this.where != null && this.where.length() > 0
+                ? " AND " + this.where
+                : "";
 
         this.qryRegistraEventoUtente = this.getOption("qryRegistraEventoUtente", null);
 
-        // Se non è definita la query di log, ignoro i rimanenti settaggi
-        // e non registro i tentativi di login falliti, ovviamente
+        //Se non è definita la query di log, ignoro i rimanenti settaggi
+        //e non registro i tentativi di login falliti, ovviamente
         if (this.qryRegistraEventoUtente != null && !this.qryRegistraEventoUtente.isEmpty()) {
 
             this.serverNameSystemProperty = this.getOption("serverNameSystemProperty", null);
-            // questo valore può essere nullo, in questo caso il nome del server
+            // questo valore può essere nullo, in questo caso il nome del server 
             // riporterà solo il nome della macchina fisica e non dell'istanza
 
             this.qryRetrieveMaxDays = this.getOption("qryRetrieveMaxDays", null);
@@ -335,25 +358,23 @@ public class DBLogin extends SimpleLogin {
             }
         } catch (IllegalAccessException e) {
             attributes.append("eccezione durante la lettura dei parametri : ").append(e.getMessage());
-            LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante " + "la lettura dei parametri di configurazione",
-                    e);
+            LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante "
+                    + "la lettura dei parametri di configurazione", e);
         }
         attributes.append("}").append(System.lineSeparator());
-        LOGGER.log(Level.FINE, "[Parer-IDP] Configurazione SecuritySubsystem {0}",
-                new Object[] { attributes.toString() });
+        LOGGER.log(Level.FINE, "[Parer-IDP] Configurazione SecuritySubsystem {0}", new Object[]{attributes.toString()});
     }
 
     /**
      * Genera l'hash senza SALT
      *
      * @param password
-     * 
      * @return hash della password
-     * 
      * @throws NoSuchAlgorithmException
      * @throws UnsupportedEncodingException
      */
-    private String encodePassword(String password) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    private String encodePassword(String password)
+            throws NoSuchAlgorithmException, UnsupportedEncodingException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         md.update(password.getBytes("UTF-8"), 0, password.length());
         byte[] pwdHash = md.digest();
@@ -366,9 +387,7 @@ public class DBLogin extends SimpleLogin {
      * @param salt
      * @param password
      * @param storedPassword
-     * 
      * @return hash della password
-     * 
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      * @throws UnsupportedEncodingException
@@ -383,22 +402,20 @@ public class DBLogin extends SimpleLogin {
     }
 
     /**
-     * Scrive - se necessario - una riga nella tabella di log, ed eventualmente disattiva l'utente usando la
-     * {@link Connection} fornita ed i parametri indicati nel DTO. Nel caso i parametri non siano indicati nella query
-     * di inserimento, non verrà prodotto un errore, ma questi verranno semplicemente ignorati.
+     * Scrive - se necessario - una riga nella tabella di log, ed eventualmente disattiva l'utente
+     * usando la {@link Connection} fornita ed i parametri indicati nel DTO. Nel caso i parametri
+     * non siano indicati nella query di inserimento, non verrà prodotto un errore, ma questi
+     * verranno semplicemente ignorati.
      *
-     * @param logDto
-     *            istanza di {@link LogDto} contenente i parametri
-     * @param con
-     *            istanza di {@link Connection} aperta.
-     * 
+     * @param logDto istanza di {@link LogDto} contenente i parametri
+     * @param con istanza di {@link Connection} aperta.
      * @throws UnknownHostException
      * @throws SQLException
-     * 
      * @see AppServerInstance
      * @see NamedStatement
      */
-    private void scriviLog(LogDto logDto, Connection con) throws UnknownHostException, SQLException {
+    private void scriviLog(LogDto logDto, Connection con)
+            throws UnknownHostException, SQLException {
 
         if (this.qryRegistraEventoUtente != null && !this.qryRegistraEventoUtente.isEmpty()) {
             NamedStatement ns = null;
@@ -407,10 +424,12 @@ public class DBLogin extends SimpleLogin {
             int giorni = 0;
             int tentativi = 0;
             /*
-             * Nota, questo è un trucco per rendere il sistema più veloce: IdpConfigLog deve sempre contenere i
-             * parametri relativi a maxGiorni e maxtentativi, ma questi vengono usati solo quando il tipo evento e
-             * BAD_PASS. Con questa condizione, le query di lettura dei parametri vengono eseguite solo in questo caso,
-             * mentre negli altri casi vengono usati i valori 0,0 che verranno comunque ignorati dal metodo scriviLog().
+            Nota, questo è un trucco per rendere il sistema più veloce: IdpConfigLog deve
+            sempre contenere i parametri relativi a maxGiorni e maxtentativi, ma questi vengono
+            usati solo quando il tipo evento e BAD_PASS.
+            Con questa condizione, le query di lettura dei parametri vengono eseguite solo
+            in questo caso, mentre negli altri casi vengono usati i valori 0,0 che verranno
+            comunque ignorati dal metodo scriviLog().
              */
             if (logDto.getTipoEvento() == TipiEvento.BAD_PASS) {
                 try {
@@ -420,7 +439,7 @@ public class DBLogin extends SimpleLogin {
                     query = this.qryRetrieveMaxTry;
                     ns = new NamedStatement(con, query);
                     LOGGER.log(Level.FINE, "[Parer-IDP] Failed login; get max try: {0} for object {1}",
-                            new Object[] { query, logDto.toString() });
+                            new Object[]{query, logDto.toString()});
                     rs = ns.executeQuery();
                     if (rs.next()) {
                         maxtentativi = rs.getString(1);
@@ -428,7 +447,7 @@ public class DBLogin extends SimpleLogin {
                     query = this.qryRetrieveMaxDays;
                     ns = new NamedStatement(con, query);
                     LOGGER.log(Level.FINE, "[Parer-IDP] Failed login; get max days: {0} for object {1}",
-                            new Object[] { query, logDto.toString() });
+                            new Object[]{query, logDto.toString()});
                     rs = ns.executeQuery();
                     if (rs.next()) {
                         maxGiorni = rs.getString(1);
@@ -444,8 +463,8 @@ public class DBLogin extends SimpleLogin {
                         }
                     } catch (SQLException e) {
                         // ho appena fatto sparire un'eccezione e lo so.
-                        LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante " + "la chiusura del ResultSet \"rs\"",
-                                e);
+                        LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante "
+                                + "la chiusura del ResultSet \"rs\"", e);
                     }
                     try {
                         if (ns != null) {
@@ -453,8 +472,8 @@ public class DBLogin extends SimpleLogin {
                         }
                     } catch (SQLException e) {
                         // ho appena fatto sparire un'eccezione e lo so.
-                        LOGGER.log(Level.WARNING,
-                                "[Parer-IDP] eccezione durante " + "la chiusura del NamedStatement \"ns\"", e);
+                        LOGGER.log(Level.WARNING, "[Parer-IDP] eccezione durante "
+                                + "la chiusura del NamedStatement \"ns\"", e);
                     }
                 }
             }
@@ -476,7 +495,8 @@ public class DBLogin extends SimpleLogin {
                 con.commit();
                 con.setAutoCommit(true);
                 if (risposta == IdpLogger.EsitiLog.UTENTE_DISATTIVATO) {
-                    LOGGER.log(Level.FINE, "[Parer-IDP] Failed login; disable user: {0} ", logDto.getNmUser());
+                    LOGGER.log(Level.FINE, "[Parer-IDP] Failed login; disable user: {0} ",
+                            logDto.getNmUser());
                 }
             } catch (SQLException e) {
                 con.rollback();

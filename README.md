@@ -1,41 +1,65 @@
-# IDP RDBMS Login
+# Informazioni sull'applicazione:
 
-Fonte template redazione documento:  https://www.makeareadme.com/.
+Questo progetto genera, nella cartella deploy, il modulo jboss da aggiungere all'installazione.
+La procedura di build è gestita esclusivamente da maven che crea, nella cartella deploy, il pacchetto che contiene il
+percorso del modulo jboss.
 
+Le informazioni che erano contenute nel file ***/opt/shibboleth/conf/login.config***, presente nelle configurazioni
+dell'idp per glassfish, sono state spostate nel domain.xml (o standalone.xml) del server jboss.
 
-# Descrizione
-
-Il seguente progetto è utilizzato come **dipendenza** interna.
-Lo scopo è quello di implementare logiche condivise a più applicazioni, che definisco gli standard di tracciabilità di eventi e verifica della validità delle credenziali degli operatori che per mezzo di piattaforme SSO (Single Sign On) effettuano il login nei singoli contesti applicativi.
-
-# Installazione
-
-Come già specificato nel paragrafo precedente [Descrizione](# Descrizione) si tratta di un progetto di tipo "libreria", quindi un modulo applicativo utilizzato attraverso la definzione della dipendenza Maven secondo lo standard previsto (https://maven.apache.org/): 
-
+Attuamente su parer-svil c'è la seguente configurazione (nel file ***/opt/jboss-eap/master/configuration/domain.xml***):
 ```xml
-<dependency>
-    <groupId>it.eng.parer</groupId>
-    <artifactId>idp-jaas-rdbms</artifactId>
-    <version>$VERSIONE</version>
-</dependency>
+[...]
+<security-domain name="ShibUserPassAuth" cache-type="default">
+    <authentication>
+        <login-module code="com.tagish.auth.DBLogin" flag="required" module="com.tagish.auth">
+            <module-option name="userTable" value="USR_USER"/>
+            <module-option name="userColumn" value="NM_USERID"/>
+            <module-option name="passColumn" value="CD_PSW"/>
+            <module-option name="saltColumn" value="CD_SALT"/>
+            <module-option name="activeColumn" value="FL_ATTIVO"/>
+            <module-option name="expirationColumn" value="DT_SCAD_PSW"/>
+            <module-option name="useJndiLookup" value="true"/>
+            <module-option name="jndiName" value="java:/jdbc/SiamDs"/>
+
+            <module-option name="qryRegistraEventoUtente" value="begin REGISTRA_EVENTO_UTENTE(:nmUser,:cdIndIpClient,:cdIndServer,:tipoEvento,:dsEvento,:tsEvento);end;" />
+            <module-option name="serverNameSystemProperty" value="jboss.node.name" />
+            <module-option name="qryRetrieveMaxDays" value="select T.DS_VALORE_PARAM_APPLIC from iam_param_applic t where T.NM_PARAM_APPLIC = 'MAX_GIORNI'" />
+            <module-option name="qryRetrieveMaxTry" value="select T.DS_VALORE_PARAM_APPLIC from iam_param_applic t where T.NM_PARAM_APPLIC = 'MAX_TENTATIVI_FALLITI'" />
+            <module-option name="qryVerificaDisattivazioneUtente" value="select VERIFICA_DISATTIVAZIONE_UTENTE(:nmUser,:tipoEvento,:maxTentativi,:maxGiorni,:tsEvento) as resp from dual" />
+            <module-option name="qryDisableUser" value="begin DISATTIVA_UTENTE(:nmUser, :tsEvento); end;" />
+        </login-module>
+    </authentication>
+</security-domain>
+[...]
+```
+che mappa 1:1 il file ***/opt/shibboleth/conf/login.config***
+```java
+[...]
+ShibUserPassAuth {
+ com.tagish.auth.DBLogin required debug="true"
+	useJndiLookup="true"		
+	  jndiName="java:/jdbc/SiamDs"		
+	  userTable="USR_USER"
+	  userColumn="NM_USERID"
+	  passColumn="CD_PSW"
+	  saltColumn="CD_SALT"
+	  activeColumn="FL_ATTIVO"
+	  expirationColumn="DT_SCAD_PSW"
+	  logTable = "SACER_LOG.LOG_LOGIN_FALLITO"
+	  logTableCols = "NM_APPLIC, NM_USERID, CD_IND_SERVER, TIPO_FALLIMENTO, CD_IND_IP_CLIENT, DS_FALLIMENTO, DT_FALLIMENTO, ID_LOGIN_FALLITO"
+	  logTableValues = ":nmApplic, :nmUser, :cdIndServer, :tipoFallimento, :cdIndIpClient, :dsFallimento, :tsFallimento, SACER_LOG.SLOG_LOGIN_FALLITO.nextval"
+	  serverNameSystemProperty = "jboss.node.name";
+};
 ```
 
-# Utilizzo
+**Nota Bene**: la stored procedure ```DISATTIVA_UTENTE``` usata nella query ```qryDisableUser```
+è presente nel file ```disattiva_utente.sql```
 
-Il modulo implementa al suo interno le logiche standard attraverso le quali si attuano verifiche di validità dell'operatore che effettua il login su singoli contesti applicativi attraverso gli appositi portali SSO (Single Sign On) predisposti, ed inoltre, sono previste azioni di tracciabilità di tali eventi su base dati. Ogni applicazione su cui è presente tale dipendenza, effettuerà le opportune chiamate ai metodi a disposizione nelle fasi di login / logout previste, sono inoltre previste delle apposite procedure (vedi [SQL](SQL)) con le quali si attuano alcune azioni tra cui ad esempio la disattivazione di uno specifico utente.
+Una trattazione più approfondita dei parametri utilizzati è disponibile alla seguente pagina della wiki:
+https://rersvn.ente.regione.emr.it/projects/parer/wiki/IDP_ConfigDBLogin .
 
-# Supporto
-
-Progetto a cura di [Engineering Ingegneria Informatica S.p.A.](https://www.eng.it/).
-
-# Contributi
-
-Se interessati a crontribuire alla crescita del progetto potete scrivere all'indirizzo email <a href="mailto:areasviluppoparer@regione.emilia-romagna.it">areasviluppoparer@regione.emilia-romagna.it</a>.
-
-# Autori
-
-Proprietà intellettuale del progetto di [Regione Emilia-Romagna](https://www.regione.emilia-romagna.it/) e [Polo Archivisitico](https://poloarchivistico.regione.emilia-romagna.it/).
-
-# Licenza
-
-Questo progetto è rilasciato sotto licenza GNU Affero General Public License v3.0 or later ([LICENSE.txt](LICENSE.txt)).
+Il tracciamento del modulo (in particolare della classe ```com.tagish.auth.DBLogin.java``` ) avviene tramite
+```java.util.logging.Logger``` .
+Al momento traccia la query di selezione e le query di insert in caso di errore.
+Il livello di tracciamento è ```java.util.logging.Level.FINE```.

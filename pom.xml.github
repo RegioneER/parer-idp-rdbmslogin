@@ -3,10 +3,37 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>it.eng.parer</groupId>
     <artifactId>idp-jaas-rdbms</artifactId>
-    <version>0.0.9</version>
+    <version>0.0.12-SNAPSHOT</version>
     <name>idp-jaas-rdbms</name>
     <description>Modulo per jboss 7 (6EAP) basato su https://github.com/tauceti2/jaas-rdbms utilizzato dall'idp per l'autenticazione su db</description>
     <packaging>jar</packaging>
+
+    <parent>
+        <groupId>it.eng.parer</groupId>
+        <artifactId>parer-pom</artifactId>
+        <version>4.2.0</version>
+    </parent>
+    
+    <scm>
+        <developerConnection>scm:git:https://github.com/RegioneER/parer-idp-rdbmslogin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm> 
+
+    <distributionManagement>
+     <repository>
+	   <id>github</id>
+	   <url>https://maven.pkg.github.com/RegioneER/parer-idp-rdbmslogin</url>
+	 </repository>      
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/RegioneER/parer-framework-parerpom</url>            
+        </repository>          
+	</repositories> 
+
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
@@ -98,38 +125,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <configuration>
-                        <outputDirectory>${deploy.folder}</outputDirectory>
-                        <resources>  
-                            <resource>
-                                <directory>target/${project.build.finalName}.jar</directory>
-                                <filtering>false</filtering>
-                            </resource>
-                        </resources>
-                    </configuration>
-                </configuration>
-            </plugin>
-            -->
         </plugins>
-    </build>  
-    <scm>
-        <developerConnection>scm:git:https://redmine.ente.regione.emr.it/git/parer-idp-rdbmslogin</developerConnection>
-      <tag>idp-jaas-rdbms-0.0.9</tag>
-  </scm>
-    <distributionManagement>
-        <repository>
-            <id>rel</id>
-            <url>https://nexus.ente.regione.emr.it/repository/parer-release/</url>
-        </repository>
-        <snapshotRepository>
-            <id>snap</id>
-            <url>https://nexus.ente.regione.emr.it/repository/parer-snapshot/</url>
-        </snapshotRepository>
-    </distributionManagement>
+    </build>    
 </project>

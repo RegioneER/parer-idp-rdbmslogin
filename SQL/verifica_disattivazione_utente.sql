@@ -1,4 +1,4 @@
-create or replace FUNCTION verifica_disattivazione_utente (
+CREATE OR REPLACE FUNCTION verifica_disattivazione_utente (
 /**
 Verifica se l'evento che si sta per inserire determinerà la 
 disattivazione dell'utente
@@ -98,7 +98,7 @@ BEGIN
     
     /*
     verifico se esiste l'utente, ed è anche attivo
-    altrimenti in ogni caso la disattivazione
+    e non scaduto, altrimenti in ogni caso la disattivazione
     non ha senso
     */
     SELECT COUNT(*)
@@ -106,7 +106,10 @@ BEGIN
         tmp_conta
     FROM usr_user t
     WHERE t.nm_userid = p_nm_userid
-        AND t.fl_attivo = 1;
+        AND t.fl_attivo = 1
+        AND ( t.dt_scad_psw IS NULL
+            OR t.dt_scad_psw >= p_dt_evento
+        );
 
     IF
         tmp_conta <> 1
